@@ -21,10 +21,11 @@ def send_email(to_email: str, subject: str, content: str):
     msg.set_content(content)
     try:
         with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, timeout=20) as server:
-            
-            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
-           
-            server.send_message(msg)
+                print("Email loging")
+                server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
+                print("Email loging")
+                server.send_message(msg)
+                print("Email send sucess")
             
     except Exception as e:
         print(f" Failed to send email: {e}")
