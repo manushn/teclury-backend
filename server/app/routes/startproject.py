@@ -1,10 +1,11 @@
-from fastapi import APIRouter, status, HTTPException, BackgroundTasks
+from fastapi import APIRouter, status, HTTPException, BackgroundTasks,Request
 from app.models.start_project import StartProject
 from app.db import table
 from datetime import datetime
 from app.emailserve.email_service import send_email
 import uuid
 from botocore.exceptions import ClientError
+from app.limiter.rate_limter import rate_limit
 
 router = APIRouter(prefix="/start-project", tags=["Start Project"])
 
@@ -12,9 +13,20 @@ router = APIRouter(prefix="/start-project", tags=["Start Project"])
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_project(
     data: StartProject,
+    request: Request,
     background_tasks: BackgroundTasks
 ):
+    client_ip = request.client.host
+
     created_at = datetime.utcnow().isoformat()
+    allowed, message = rate_limit(f"startproject:{client_ip}")
+
+    if not allowed:
+        return {
+            
+            "detail": message
+        }
+    
 
     item = {
         "pk": "SUBMISSION#PROJECT",

@@ -28,16 +28,16 @@ def send_email(to_email: str, subject: str, content: str):
     msg.set_content(content)
 
     try:
-        logging.info(f"Connecting to SMTP {EMAIL_HOST}:{EMAIL_PORT}")
+        
 
         with smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT, timeout=20) as server:
-            logging.info("Logging into SMTP")
+            
             server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
 
-            logging.info("Sending email")
+            
             server.send_message(msg)
 
-            logging.info("Email sent successfully")
+            
 
     except Exception as e:
         logging.exception("Failed to send email")

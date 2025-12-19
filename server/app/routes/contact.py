@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException, BackgroundTasks
+from fastapi import APIRouter, status, HTTPException, BackgroundTasks,Request
 from app.models.contact import contactModel as Contact
 from app.db import table
 from datetime import datetime
@@ -7,13 +7,26 @@ import uuid
 from botocore.exceptions import ClientError
 
 router = APIRouter(prefix="/contact", tags=["Contact"])
+from app.limiter.rate_limter import rate_limit
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_contact(
     data: Contact,
+    request: Request,
     background_tasks: BackgroundTasks
 ):
+    
+    client_ip = request.client.host
+
+    allowed, message = rate_limit(f"contact:{client_ip}")
+
+    if not allowed:
+        return {
+            
+            "detail": message
+        }
+
     created_at = datetime.utcnow().isoformat()
 
     item = {

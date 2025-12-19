@@ -1,10 +1,11 @@
-from fastapi import APIRouter, status, HTTPException, BackgroundTasks
+from fastapi import APIRouter, status, HTTPException, BackgroundTasks,Request
 from app.models.early_access import EarlyAccess
 from app.db import table
 from datetime import datetime
 from app.emailserve.email_service import send_email
 import uuid
 from botocore.exceptions import ClientError
+from app.limiter.rate_limter import rate_limit
 
 router = APIRouter(prefix="/early-access", tags=["Early Access"])
 
@@ -12,8 +13,20 @@ router = APIRouter(prefix="/early-access", tags=["Early Access"])
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_early_access(
     data: EarlyAccess,
+    request: Request,
     background_tasks: BackgroundTasks
 ):
+    client_ip = request.client.host
+
+    
+    allowed, message = rate_limit(f"early_access:{client_ip}")
+
+    if not allowed:
+        return {
+            
+            "detail": message
+        }
+    
     created_at = datetime.utcnow().isoformat()
 
     item = {
